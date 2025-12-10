@@ -125,16 +125,18 @@ effect with the feedback direction and item details. Listen for it and post a
 follow-up message to the same thread:
 
 ```tsx
+const thumbsDownFollowUp =
+  "Sorry that missed the mark. What would you like changed?";
+
 const { control, sendUserMessage } = useChatKit({
   threadItemActions: { feedback: true },
   async onEffect({ name, data }) {
     if (name === 'message.feedback' && data?.rating === 'down') {
       await sendUserMessage({
-        text: "Sorry that missed the mark. What would you like changed?",
-        reply: typeof data?.messageId === 'string' ? data.messageId : undefined,
+        text: thumbsDownFollowUp,
+        reply: data?.messageId,
       });
     }
   },
 });
 ```
-
