@@ -145,9 +145,7 @@ For vanilla JavaScript implementations, the same principle applies:
   </head>
   <body>
     <div id="chat-root"></div>
-    <script type="module">
-      import '@openai/chatkit';
-
+    <script>
       // Wait for custom element to be defined
       customElements.whenDefined('openai-chatkit').then(() => {
         const chatkit = document.createElement('openai-chatkit');
