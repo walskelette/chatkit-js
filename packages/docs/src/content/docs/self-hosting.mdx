@@ -1,0 +1,218 @@
+---
+title: Self-Hosting & Custom Script URLs
+description: Learn how to use custom script sources for ChatKit, including self-hosting and alternative CDNs.
+---
+
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+## Overview
+
+By default, ChatKit loads its UI components from OpenAI's CDN at `https://cdn.platform.openai.com/deployments/chatkit/chatkit.js`. However, you can easily configure your app to load ChatKit from a different source, such as:
+
+- Your own self-hosted server
+- A different CDN provider
+- A local development build
+- A specific version or custom build
+
+## Changing the Script Source
+
+The script source is determined by the `src` attribute of the `<script>` tag you add to your HTML. To use a custom source, simply change this URL:
+
+### Default (OpenAI CDN)
+
+```html
+<script
+  src="https://cdn.platform.openai.com/deployments/chatkit/chatkit.js"
+  async
+></script>
+```
+
+### Custom Source
+
+```html
+<script
+  src="https://your-domain.com/path/to/chatkit.js"
+  async
+></script>
+```
+
+## Common Use Cases
+
+### Self-Hosting
+
+If you want to host ChatKit on your own infrastructure:
+
+1. Download or build the ChatKit JavaScript bundle
+2. Host it on your web server or CDN
+3. Update the script tag to point to your hosted version
+
+```html
+<script
+  src="https://assets.myapp.com/chatkit/v1.0.0/chatkit.js"
+  async
+></script>
+```
+
+:::tip
+When self-hosting, ensure your server sets appropriate CORS headers and serves the script with the correct `Content-Type: application/javascript` header.
+:::
+
+### Using a Specific Version
+
+Pin to a specific version by including it in the URL path:
+
+```html
+<script
+  src="https://cdn.platform.openai.com/deployments/chatkit/v1.2.3/chatkit.js"
+  async
+></script>
+```
+
+### Local Development
+
+During development, you may want to use a local build:
+
+```html
+<script
+  src="http://localhost:3000/chatkit.js"
+  async
+></script>
+```
+
+### Alternative CDN Providers
+
+You can use any CDN provider that can host JavaScript files:
+
+```html
+<!-- Example: Using your own CDN -->
+<script
+  src="https://cdn.example.com/libraries/chatkit/latest/chatkit.js"
+  async
+></script>
+```
+
+## Integration with React
+
+The React bindings (`@openai/chatkit-react`) don't require any special configuration when changing the script source. The component simply waits for the `openai-chatkit` custom element to be registered, regardless of where the script is loaded from:
+
+```tsx
+import { ChatKit, useChatKit } from '@openai/chatkit-react';
+
+export function MyChat() {
+  const { control } = useChatKit({
+    api: {
+      url: 'http://localhost:8000/chatkit',
+      domainKey: 'local-dev',
+    },
+  });
+
+  return <ChatKit control={control} className="h-[600px] w-[320px]" />;
+}
+```
+
+The script tag (with your custom `src`) should be added to your HTML before React renders:
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Custom script source -->
+    <script
+      src="https://your-domain.com/chatkit.js"
+      async
+    ></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Your React app renders here -->
+  </body>
+</html>
+```
+
+## Vanilla JavaScript
+
+For vanilla JavaScript implementations, the same principle applies:
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Custom script source -->
+    <script
+      src="https://your-domain.com/chatkit.js"
+      async
+    ></script>
+  </head>
+  <body>
+    <div id="chat-root"></div>
+    <script type="module">
+      import '@openai/chatkit';
+
+      // Wait for custom element to be defined
+      customElements.whenDefined('openai-chatkit').then(() => {
+        const chatkit = document.createElement('openai-chatkit');
+        
+        chatkit.setOptions({
+          api: {
+            url: 'http://localhost:8000/chatkit',
+            domainKey: 'local-dev',
+          },
+        });
+        
+        document.getElementById('chat-root')?.append(chatkit);
+      });
+    </script>
+  </body>
+</html>
+```
+
+## Building Your Own Bundle
+
+If you want to create a custom build of ChatKit:
+
+1. Clone or fork the ChatKit repository
+2. Make any customizations you need
+3. Build the bundle using the project's build tools
+4. Host the resulting JavaScript file
+5. Update your script tag to use your custom build
+
+:::caution
+When using custom builds, you're responsible for keeping your version up to date and ensuring compatibility with the ChatKit backend API.
+:::
+
+## Verifying the Script Source
+
+You can verify which script source is being used by checking the browser's developer tools:
+
+1. Open DevTools (F12)
+2. Go to the Network tab
+3. Filter by JS files
+4. Look for `chatkit.js` in the list
+5. Check the "Name" or "URL" column to see the full source URL
+
+## Troubleshooting
+
+### Script Not Loading
+
+If the ChatKit element doesn't appear:
+
+- Verify the script URL is correct and accessible
+- Check browser console for network errors
+- Ensure CORS headers are properly configured if hosting on a different domain
+- Verify the script has the correct `Content-Type` header
+
+### Custom Element Not Defined
+
+If you see errors about `openai-chatkit` not being defined:
+
+- Ensure the script has finished loading before trying to use the element
+- Use `customElements.whenDefined('openai-chatkit')` to wait for definition
+- Check that the script successfully registered the custom element
+
+### Version Mismatch
+
+If using custom sources with the React bindings:
+
+- Ensure the ChatKit script version is compatible with `@openai/chatkit-react`
+- Check that type definitions match the runtime version
+- Consider pinning both the script version and npm package version together
