@@ -92,10 +92,7 @@ The ChatKit UI components are loaded from OpenAI's CDN by default (`https://cdn.
 ### Self-Hosting Example
 
 ```html
-<script
-  src="https://your-domain.com/path/to/chatkit.js"
-  async
-></script>
+<script src="https://your-domain.com/path/to/chatkit.js" async></script>
 ```
 
 ### Common Use Cases
