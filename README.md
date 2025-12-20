@@ -54,6 +54,8 @@ Just add the ChatKit component, give it a client token, and customize the chat e
    ></script>
    ```
 
+   > **Note:** You can easily customize the script source URL to self-host ChatKit or use an alternative CDN. Simply change the `src` attribute to point to your hosted version. See the [Self-Hosting documentation](packages/docs/src/content/docs/self-hosting.mdx) for details.
+
 4. Render ChatKit
 
    ```tsx
@@ -82,6 +84,27 @@ Just add the ChatKit component, give it a client token, and customize the chat e
      return <ChatKit control={control} className="h-[600px] w-[320px]" />;
    }
    ```
+
+## Customizing the Script Source
+
+The ChatKit UI components are loaded from OpenAI's CDN by default (`https://cdn.platform.openai.com/deployments/chatkit/chatkit.js`). You can easily change where the script is loaded from by modifying the `src` attribute in the script tag:
+
+### Self-Hosting Example
+
+```html
+<script src="https://your-domain.com/path/to/chatkit.js" async></script>
+```
+
+### Common Use Cases
+
+- **Self-host on your infrastructure** - Download and host the ChatKit bundle on your own servers
+- **Use a different CDN** - Point to any CDN provider that hosts the ChatKit script
+- **Pin to a specific version** - Control updates by hosting a specific version
+- **Local development** - Use a locally built version during development
+
+The React bindings and vanilla JavaScript implementations work seamlessly with any script source - simply update the `src` URL and ChatKit will load from your specified location.
+
+For detailed instructions and examples, see the [Self-Hosting documentation](packages/docs/src/content/docs/self-hosting.mdx).
 
 ## See working examples
 

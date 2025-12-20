@@ -42,6 +42,7 @@ const sidebar = [
   { label: 'Overview', link: '/' },
   { label: 'Quick start', link: '/quickstart' },
   { label: 'Customize', link: '/customize' },
+  { label: 'Self-Hosting & Custom Script URLs', link: '/self-hosting' },
   {
     label: 'Quick API Reference',
     items: [
