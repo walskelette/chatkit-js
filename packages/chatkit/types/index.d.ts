@@ -585,6 +585,23 @@ export type ModelOption = {
   default?: boolean;
 };
 
+/**
+ * Configuration for self-hosted ChatKit backends.
+ *
+ * When using this configuration, all API requests are sent to your specified
+ * URL. You are responsible for implementing the ChatKit API specification,
+ * handling authentication, and managing conversation data.
+ *
+ * This mode is detected when the `api` object contains a `url` property.
+ *
+ * @example
+ * ```ts
+ * api: {
+ *   url: 'http://localhost:8000/chatkit',
+ *   domainKey: 'your-domain-key',
+ * }
+ * ```
+ */
 export type CustomApiConfig = {
   /**
    * The URL (relative or absolute) of the ChatKit API. The configured endpoint
@@ -613,9 +630,34 @@ export type CustomApiConfig = {
   uploadStrategy?: FileUploadStrategy;
 };
 
+/**
+ * Configuration for OpenAI-hosted ChatKit backends.
+ *
+ * When using this configuration, API requests are sent to OpenAI's servers.
+ * The `getClientSecret` function is called to obtain a client secret from
+ * your server, which must be minted via the OpenAI API.
+ *
+ * This mode is detected when the `api` object contains a `getClientSecret` property.
+ *
+ * @example
+ * ```ts
+ * api: {
+ *   async getClientSecret(existing) {
+ *     const res = await fetch('/api/chatkit/session', { method: 'POST' });
+ *     const { client_secret } = await res.json();
+ *     return client_secret;
+ *   },
+ * }
+ * ```
+ */
 export type HostedApiConfig = {
   /**
-   * Function to get a client token or refresh if the current token is expired.
+   * Function to get a client secret or refresh if the current one is expired.
+   * This function is called when ChatKit needs a valid client secret to
+   * authenticate with OpenAI's servers.
+   *
+   * @param currentClientSecret - The current client secret, or null if none exists.
+   * @returns A promise resolving to a valid client secret string.
    */
   getClientSecret: (currentClientSecret: string | null) => Promise<string>;
 };
