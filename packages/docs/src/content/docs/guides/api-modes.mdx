@@ -1,0 +1,149 @@
+---
+title: API Configuration Modes
+description: How ChatKit determines which API mode to use based on your configuration.
+---
+
+ChatKit supports two distinct API configuration modes that determine how and where requests are sent. The mode is selected automatically based on the shape of your `api` configuration object.
+
+## Mode Detection
+
+The ChatKit SDK uses TypeScript discriminated unions to determine which mode to use by checking for specific properties in your `api` configuration:
+
+| Configuration | Mode | Description |
+|--------------|------|-------------|
+| `{ url, domainKey }` | Self-hosted (Custom API) | Requests go to your specified URL |
+| `{ getClientSecret }` | OpenAI-hosted | Requests go to OpenAI servers |
+
+The mode is determined by checking which properties exist in your configuration:
+
+```typescript
+// Self-hosted mode - detected by presence of 'url' property
+api: {
+  url: '/chatkit',
+  domainKey: 'your-domain-key',
+}
+
+// OpenAI-hosted mode - detected by presence of 'getClientSecret' property
+api: {
+  getClientSecret: async (existing) => {
+    // Fetch client secret from your server
+    return clientSecret;
+  },
+}
+```
+
+## Self-Hosted Mode (CustomApiConfig)
+
+When you provide `url` and `domainKey`, ChatKit operates in self-hosted mode:
+
+```typescript
+type CustomApiConfig = {
+  /**
+   * The URL (relative or absolute) of your ChatKit API endpoint.
+   */
+  url: string;
+
+  /**
+   * The domain key used to verify the registered domain.
+   */
+  domainKey: string;
+
+  /**
+   * Optional custom fetch function for API requests.
+   */
+  fetch?: typeof fetch;
+
+  /**
+   * How attachments will be uploaded. Required when attachments are enabled.
+   */
+  uploadStrategy?: FileUploadStrategy;
+};
+```
+
+### Behavior in Self-Hosted Mode
+
+- **All conversation requests** go to your specified `url`
+- **Domain verification** is handled differently than OpenAI-hosted mode
+- **You are responsible for** authentication, rate limiting, and security
+- **The `domainKey`** is sent to your server for verification
+
+### When to Use Self-Hosted Mode
+
+Self-hosted mode is ideal when you:
+- Want full control over your data and infrastructure
+- Need to use a custom inference pipeline or model provider
+- Require integration with proprietary systems
+- Want to run ChatKit against a local development server
+
+:::note[Domain Key in Self-Hosted Mode]
+While the `domainKey` parameter is required, its verification behavior differs from OpenAI-hosted mode. In self-hosted mode, domain verification can be implemented by your backend, giving you full control over how domains are validated.
+:::
+
+## OpenAI-Hosted Mode (HostedApiConfig)
+
+When you provide `getClientSecret`, ChatKit operates in OpenAI-hosted mode:
+
+```typescript
+type HostedApiConfig = {
+  /**
+   * Function to get a client secret or refresh if the current one is expired.
+   */
+  getClientSecret: (currentClientSecret: string | null) => Promise<string>;
+};
+```
+
+### Behavior in OpenAI-Hosted Mode
+
+- **Conversation requests** go to OpenAI's servers
+- **Domain verification** is performed by OpenAI's domain allowlist
+- **Client secrets** are obtained from your server, which mints them via the OpenAI API
+- **Data locality** may be configured (US or EU endpoints) based on your client secret
+
+### When to Use OpenAI-Hosted Mode
+
+OpenAI-hosted mode is ideal when you:
+- Want the fastest setup with minimal infrastructure
+- Are building with Agent Builder workflows
+- Prefer OpenAI-managed conversation storage and processing
+- Want automatic domain security verification
+
+## Comparison
+
+| Aspect | Self-Hosted | OpenAI-Hosted |
+|--------|-------------|---------------|
+| Request destination | Your server | OpenAI servers |
+| Domain verification | Your implementation | OpenAI's allowlist |
+| Authentication | Your implementation | OpenAI client secrets |
+| Data storage | Your infrastructure | OpenAI |
+| Custom models | ✓ Supported | Depends on workflow |
+| Setup complexity | Higher | Lower |
+
+## Type Safety
+
+The TypeScript types ensure you cannot mix configurations from different modes:
+
+```typescript
+// ✗ TypeScript error: Cannot have both 'url' and 'getClientSecret'
+api: {
+  url: '/chatkit',
+  domainKey: 'key',
+  getClientSecret: async () => '...',  // Error!
+}
+
+// ✓ Valid self-hosted configuration
+api: {
+  url: '/chatkit',
+  domainKey: 'key',
+}
+
+// ✓ Valid hosted configuration
+api: {
+  getClientSecret: async () => '...',
+}
+```
+
+## See Also
+
+- [Quick start](../quickstart/) - Get started with ChatKit
+- [Managed vs. self-hosted backend](../index/#managed-vs-self-hosted-backend) - Feature comparison
+- [ChatKitOptions reference](../api/openai/chatkit/type-aliases/chatkitoptions/) - Full configuration options
